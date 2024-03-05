@@ -1,0 +1,17 @@
+HLA_EFG聚合
+```{r}
+library(dplyr)
+
+# 假设您的数据框架名为ALL_SILU_data
+# 使用mutate()添加新列c_HLA_EFG，忽略NA值
+ALL_SILU_data <- ALL_SILU_data %>%
+  mutate(c_HLA_EFG = case_when(
+    # 检查所有三个列是否全部为Neg，忽略NA值
+    (!is.na(HLA_E_group) & HLA_E == "Neg" & 
+     !is.na(HLA_F_group) & HLA_F == "Neg" & 
+     !is.na(HLA_G_group) & HLA_G == "Neg") ~ "Low",
+    # 其他情况，包括任何一个不是Neg或包含NA值
+    TRUE ~ "High"
+  ))
+
+```
