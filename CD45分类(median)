@@ -1,0 +1,27 @@
+CD45分类(median)
+
+# 使用 dplyr 包
+library(dplyr)
+library(tidyverse)
+# 计算 'cd45 in epithelium' 列的中位数
+median_CD45<- median(ALL_SILU_data$`CD45_density`, na.rm = TRUE)
+
+# 创建一个新列进行分类
+ALL_SILU_data <- ALL_SILU_data %>%
+ mutate(CD45_density_group = if_else(`CD45_density` <= median_CD45, "Low", "High"))
+
+
+CD45分类(Quantile)
+library(dplyr)
+# 计算 'CD45_density' 列的四分位数
+quantiles_CD45 <- quantile(ALL_SILU_data$CD45_density, probs = c(0.25, 0.5, 0.75), na.rm = TRUE)
+
+# 创建一个新列进行分类，基于四分位数，同时处理 NA 值
+ALL_SILU_data <- ALL_SILU_data %>%
+  mutate(CD45_density_quartile = case_when(
+    is.na(`CD45_density`) ~ NA_character_, # 保持 NA 值为 NA
+    `CD45_density` <= quantiles_CD45[1] ~ "Q1", # 第一四分位数以下
+    `CD45_density` > quantiles_CD45[1] & `CD45_density` <= quantiles_CD45[2] ~ "Q2", # 第一四分位数到中位数
+    `CD45_density` > quantiles_CD45[2] & `CD45_density` <= quantiles_CD45[3] ~ "Q3", # 中位数到第三四分位数
+    TRUE ~ "Q4" # 第三四分位数以上
+  ))
