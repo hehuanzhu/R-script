@@ -1,0 +1,48 @@
+相关系数散点图代码：
+# 加载dplyr包
+library(dplyr)
+
+# 删除包含HLA_G和HLA_E空值的行
+ALL_SILU_data <- ALL_SILU_data %>%
+  filter(!is.na(HLA_G) & !is.na(HLA_E) & !is.na(HLA_F))
+
+# 假设您已经加载了RNASeq.QN.LOG2矩阵到您的R环境中
+# RNASeq.QN.LOG2 - 行名为基因名，列名为病人ID
+
+# 选择特定基因的RNA表达量
+selected_genes <- RNASeq.QN.LOG2[c("HLA-G", "HLA-F", "HLA-E"), ]
+
+# 转置这个子矩阵以便病人ID成为行，基因名成为列
+transposed_genes <- t(selected_genes)
+
+# 创建数据框，病人ID作为行名
+RNA_data_frame <- as.data.frame(transposed_genes)
+
+# 将行名（病人ID）添加到数据框作为新列
+RNA_data_frame$Patient_ID <- rownames(RNA_data_frame)
+
+# 重置行名，因为病人ID现在是数据框的一部分
+rownames(RNA_data_frame) <- NULL
+# 重命名列名
+colnames(RNA_data_frame) <- c("HLA_RNA_G", "HLA_RNA_F", "HLA_RNA_E", "Patient_ID")
+
+# 合并两个数据框，以病人ID为基准
+combined_data <- merge(ALL_SILU_data, RNA_data_frame, by = "Patient_ID")
+
+
+# 计算相关性系数
+correlation_G <- cor(combined_data$HLA_G, combined_data$HLA_RNA_G, use = "complete.obs")
+correlation_F <- cor(combined_data$HLA_F, combined_data$HLA_RNA_F, use = "complete.obs")
+correlation_E <- cor(combined_data$HLA_E, combined_data$HLA_RNA_E, use = "complete.obs")
+
+# 绘制散点图并添加相关性系数标签
+# 这里以HLA_G为例
+ggplot(combined_data, aes(x = HLA_G, y = HLA_RNA_G)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "HLA-G 蛋白质表达量 vs RNA表达量",
+       x = "蛋白质表达量 (HLA_G)",
+       y = "RNA表达量 (HLA_RNA_G)") +
+  geom_text(aes(label = paste("R =", round(correlation_G, 2))), 
+            x = Inf, y = Inf, hjust = 1.1, vjust = 2,
+            size = 5, colour = "red")
