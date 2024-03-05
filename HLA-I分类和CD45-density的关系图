@@ -1,0 +1,28 @@
+HLA-I分类和CD45-density的关系图：
+
+# 加载必要的库
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+
+# 确保HLA_I_Manual列和CD45marker列存在，并将HLA_I_Manual转换为有序因子
+ALL_SILU_data <- ALL_SILU_data %>%
+  filter(!is.na(HLA_I_Manual) & !is.na(CD45_density)) %>%
+  mutate(HLA_I_Manual = factor(HLA_I_Manual, levels = c("p", "hp", "hw", "w")))
+
+# 进行Kruskal-Wallis检验
+kruskal_test_result <- kruskal.test(CD45_density ~ HLA_I_Manual, data = ALL_SILU_data)
+print(kruskal_test_result)
+
+# 绘制箱形图并添加统计显著性注释
+p <- ggplot(ALL_SILU_data, aes(x = HLA_I_Manual, y = CD45_density, fill = HLA_I_Manual)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "CD45 density Across HLA-I Categories",
+       x = "HLA-I Category",
+       y = "CD45 density")+
+  scale_fill_manual(values = c("p" = "red", "hp" = "orange", "hw" = "green", "w" = "blue"),
+                    name = "HLA-I Group",  # 修改图例标题
+                    labels = c("p" = "positive", "hp" = "positive(h)", "hw" = "weak(h)", "w" = "negative")) 
+
+print(p)
