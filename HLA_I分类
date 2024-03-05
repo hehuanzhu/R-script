@@ -1,0 +1,32 @@
+HLA_I分类
+# 安装 dplyr 包（如果您还没有安装的话）
+install.packages("dplyr")
+
+# 加载 dplyr 包
+library(dplyr)
+
+# 假设您的数据框架名为 data
+# 根据 'HLA-I % Positive Tumor Epithelium' 的值来创建新的分组列
+ALL_SILU_data <- ALL_SILU_data %>%
+  mutate(Group = case_when(
+    `HLA-I % Positive Tumor Epithelium` < 60 ~ "Neg",
+    `HLA-I % Positive Tumor Epithelium` < 95 ~ "Low",
+    `HLA-I % Positive Tumor Epithelium` >= 95 ~ "High"
+  ))
+
+HLA_I分类2
+```{r}
+library(dplyr)
+
+# 假设您的数据框架名为ALL_SILU_data
+# 使用mutate()和case_when()添加新列HLA_I_group
+ALL_SILU_data_clean <- ALL_SILU_data_clean %>%
+  mutate(HLA_I_group = case_when(
+    HLA_I_Manual %in% c("p", "hp") ~ "High",
+    HLA_I_Manual %in% c("w", "hw") ~ "Low",
+    # 可以在这里添加其他条件，如果需要
+    TRUE ~ NA_character_ # 对于不符合以上任何一类的情况，可以赋予NA或其他特定值
+  ))
+
+```
+
