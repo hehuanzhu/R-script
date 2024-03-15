@@ -45,5 +45,6 @@ ggsurvplot(km_fit,
            risk.table.fontsize = 3, # 调整风险表字体大小
            risk.table.height = 0.3, # 可以调整风险表的高度，如果需要的话
            # 其他字体大小保持默认
-xlim = c(0, 90) # 限制X轴范围只展示到90个月
+xlim = c(0, 90), # 限制X轴范围只展示到90个月
+break.x.by = 30#横坐标间隔
            )
