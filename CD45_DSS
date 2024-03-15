@@ -51,7 +51,7 @@ ggsurvplot(km_fit,
            risk.table = TRUE,
            palette = c( "#FC4E07",  "#2E9FDF"), # 为每个组指定颜色，确保与因子水平的顺序相匹配
            legend.title = "Group",
-           legend.labs = c("Positive",  "Negative"), # 自定义图例标签
+           legend.labs = c("High",  "Low"), # 自定义图例标签
            xlab = "Time in months", # 修改x轴标签为月数
            ylab = "Survival probability",
            risk.table.fontsize = 3, # 调整风险表字体大小
