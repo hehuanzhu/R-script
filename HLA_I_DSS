@@ -53,7 +53,7 @@ ggsurvplot(km_fit,
            legend.title = "Group",
            legend.labs = c("High",  "Low"), # 自定义图例标签
            xlab = "Time in months", # 修改x轴标签为月数
-           ylab = "Survival probability",
+           ylab = "DSS probability",
            risk.table.fontsize = 3, # 调整风险表字体大小
            risk.table.height = 0.3, # 可以调整风险表的高度，如果需要的话
            # 其他字体大小保持默认
