@@ -14,3 +14,96 @@ ALL_SILU_data <- ALL_SILU_data %>%
   ))
 
 ```
+
+可用的mutation oncoprint：
+```{r}
+library(dplyr)
+library(tidyr)
+library(ComplexHeatmap)
+library(circlize)
+
+# 目标基因列表
+target_genes <- c('HLA-A', 'HLA-B', 'HLA-C', 'B2M', 'TAP1', 'TAP2', 'CALR', 'CANX', 
+                  'TAPBP', 'PSMB8', 'PSMB9', 'PSME1', 'PSME2', 'ERAP1', 
+                  'ERAP2', 'PDIA3', 'NLRC5', 'IDE', 'TPP2', 'HSPA5', 'THOP1', 'IFNGR1', 
+                  'IFNGR2', 'IRF1', 'JAK1', 'JAK2', 'STAT1', 'APLNR', 'CD58')
+
+# 清理set1，删除HLA_I_group为NA的行，并筛选出目标病人
+ALL_SILU_data_clean <- ALL_SILU_data %>%
+  filter(!is.na(CD3pos_EPI_quartile)) %>%
+  mutate(CD3pos_EPI_quartile = factor(CD3pos_EPI_quartile, levels = c("Q4", "Q3", "Q2", "Q1"))) 
+
+# 从set2中筛选出与set1_clean匹配的Patient_ID和目标基因
+MAF_WES_Mutect_Strelka_filtered <- MAF_WES_Mutect_Strelka %>%
+  filter(Patient_ID %in% ALL_SILU_data_clean$Patient_ID, Hugo_Symbol %in% target_genes)
+
+# 保留每个Patient_ID和Hugo_Symbol组合中的第一个变异记录
+MAF_WES_Mutect_Strelka_unique <- MAF_WES_Mutect_Strelka_filtered %>%
+  group_by(Patient_ID, Hugo_Symbol) %>%
+  summarise(Variant_Classification = first(Variant_Classification), .groups = 'drop')
+
+# 创建热图数据矩阵
+heatmap_data <- MAF_WES_Mutect_Strelka_unique %>%
+  pivot_wider(names_from = Hugo_Symbol, values_from = Variant_Classification) %>%
+  replace(is.na(.), "") # Replace NAs with empty string for missing values
+
+# 确保热图数据矩阵包含所有的目标基因
+# 如果某些基因在数据中不存在，添加空列
+for(gene in target_genes) {
+  if(!gene %in% names(heatmap_data)) {
+    heatmap_data[[gene]] <- ""
+  }
+}
+
+# 按目标基因顺序排列列
+heatmap_data <- heatmap_data %>%
+  select(Patient_ID, all_of(target_genes))
+
+# 为缺失的患者添加空行
+all_patients <- unique(ALL_SILU_data_clean$Patient_ID)
+heatmap_data_complete <- tibble(Patient_ID = all_patients) %>%
+  left_join(heatmap_data, by = "Patient_ID") %>%
+  replace(is.na(.), "") %>%
+  column_to_rownames(var = "Patient_ID")
+
+# 将数据矩阵转化为矩阵格式
+heatmap_matrix <- as.matrix(heatmap_data_complete)
+
+# 设置热图颜色
+colors <- c(
+  "Frame_Shift_Del" = "orange",
+  "Frame_Shift_Ins" = "red",
+  "In_Frame_Del" = "green",
+  "In_Frame_Ins" = "blue",
+  "Missense_Mutation" = "purple",
+  "Nonsense_Mutation" = "brown",
+  "Nonstop_Mutation" = "pink",
+  "Splice_Site" = "grey",
+  "Translation_Start_Site" = "yellow"
+)
+
+# 生成与set1_clean匹配的病人分组信息
+patient_group <- ALL_SILU_data_clean$CD3pos_EPI_quartile[match(rownames(heatmap_matrix), ALL_SILU_data_clean$Patient_ID)]
+
+# 绘制热图
+Heatmap(heatmap_matrix,
+        name = "Variant_Classification",
+        col = colors,
+        show_row_names = FALSE,
+        show_column_names = TRUE,
+        row_split = patient_group,
+        cluster_rows = FALSE,
+        cluster_columns = FALSE,
+        column_names_side = "bottom",
+        column_title = NULL,
+        row_title = NULL)
+
+# 附加HLA分组的颜色条
+ha <- HeatmapAnnotation(CD3pos_EPI_quartile = patient_group,
+                        col = list(CD3pos_EPI_quartile = c("Q4" = "red", "Q3" = "orange" , "Q2" = "green", "Q1" = "blue")),
+                        which = "row")
+
+# 画出完整的热图
+draw(ha + Heatmap(heatmap_matrix, col = colors), heatmap_legend_side = "bot", annotation_legend_side = "bot")
+
+```
