@@ -1,0 +1,54 @@
+```{r}
+library(dplyr)
+
+ALL_SILU_data <- ALL_SILU_data %>%
+  mutate(HLA_FG = case_when(
+    HLA_F_group == "Neg" & HLA_G_group == "Neg" ~ "Neg", # 当两个列的值均为Neg时
+    TRUE ~ "Pos" # 在其他所有情况下
+  ))
+
+```
+
+
+```{r}
+library(dplyr)
+library(survival)
+library(survminer)
+
+# 假设 ALL_SILU_data 已经被加载到环境中
+ALL_SILU_data_clean <- ALL_SILU_data %>%
+  filter(!is.na(HLA_FG) & !is.na(HLA_I_group) & !is.na(CD45_density_group) & !is.na(OS_Status) & !is.na(OS_Time))
+
+# 将生存时间从天数转换为月数
+ALL_SILU_data_clean <- ALL_SILU_data_clean %>%
+  mutate(OS_Time_Months = OS_Time / 30.44)
+
+# 创建一个新的组合变量
+ALL_SILU_data_grouped <- ALL_SILU_data_clean %>%
+  mutate(Group = factor(paste(HLA_FG, HLA_I_group,CD45_density_group, sep = "_")))
+
+
+# 创建生存对象，使用转换后的月数
+surv_object <- Surv(time = ALL_SILU_data_grouped$OS_Time_Months, event = ALL_SILU_data_grouped$OS_Status == "DECEASED")
+
+# 使用新的分组变量进行Kaplan-Meier生存分析
+km_fit <- survfit(surv_object ~ Group, data = ALL_SILU_data_grouped)
+
+# 绘制生存曲线
+ggsurvplot(km_fit,
+           data = ALL_SILU_data_grouped,
+           pval = TRUE,
+           conf.int = FALSE, # 不显示95%置信区间
+           risk.table = TRUE,
+           palette = c("#4F81BD", "#F4B084", "#1B9E77", "#C0504D", "#9ABA59", "#7570B3", "#E0777D", "#8DD3C7"),
+           legend.title = "Group",
+           legend.labs = levels(ALL_SILU_data_grouped$Group), # 自动从分组变量中获取图例标签
+           xlab = "Time in months",
+           ylab = "OS probability",
+           risk.table.fontsize = 3,
+           risk.table.height = 0.5,
+           xlim = c(0, 90), # 限制X轴范围只展示到90个月
+           break.x.by = 30)
+
+
+```
