@@ -15,3 +15,17 @@ ALL_SILU_data <- ALL_SILU_data %>%
   ))
 
 ```
+
+
+HLA_FG聚合
+```{r}
+library(dplyr)
+
+# 假设您的数据框名为df
+ALL_SILU_data <- ALL_SILU_data %>%
+  mutate(HLA_EF = case_when(
+    HLA_F_group == "Neg" & HLA_G_group == "Neg" ~ "Neg", # 当两个列的值均为Neg时
+    TRUE ~ "Pos" # 在其他所有情况下
+  ))
+
+```
