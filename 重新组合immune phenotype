@@ -1,0 +1,12 @@
+```{r}
+library(dplyr)
+
+ALL_SILU_data <- ALL_SILU_data %>%
+  mutate(Phenotype = case_when(
+    HLA_FG == "Neg" & HLA_I_group == "High" & CD45_density_group == "High" ~ "Phenotype A",
+    HLA_FG == "Pos" & HLA_I_group == "Low" & CD45_density_group == "Low" ~ "Phenotype C",
+    HLA_FG == "Neg" & HLA_I_group == "Low" & CD45_density_group == "Low" ~ "Phenotype C",
+    TRUE ~ "Phenotype B"
+  ))
+
+```
