@@ -1,0 +1,53 @@
+library(maftools)
+library(RColorBrewer)
+library(dplyr)
+
+# 定义目标基因列表
+target_genes <- c('HLA-A', 'HLA-B', 'HLA-C', 'B2M', 'TAP1', 'TAP2', 'CALR', 'CANX', 
+                  'TAPBP', 'PSMB8', 'PSMB9', 'PSME1', 'PSME2', 'ERAP1', 
+                  'ERAP2', 'PDIA3', 'NLRC5', 'IDE', 'TPP2', 'HSPA5', 'THOP1', 'IFNGR1', 
+                  'IFNGR2', 'IRF1', 'JAK1', 'JAK2', 'STAT1', 'APLNR', 'CD58')
+
+# 设置变异类型对应的颜色
+vc_cols <- RColorBrewer::brewer.pal(n = 7, name = 'Paired')
+names(vc_cols) <- c('Frame_Shift_Del', 'Missense_Mutation', 'Nonsense_Mutation', 
+                    'Translation_Start_Site', 'Frame_Shift_Ins', 'Splice_Site', 'Multi_Hit')
+
+
+# 为不同的临床特征设置颜色映射
+# HLA_I_Manual颜色映射
+colors_HLA_I_Manual <- brewer.pal(n = 4, name = 'Spectral')
+names(colors_HLA_I_Manual) <- c("p", "hp", "hw", "w")
+
+# CD45_density_group颜色映射
+colors_CD45 <- c("High" = "red", "Low" = "#2b8cbe")
+
+# HLA_E_group, HLA_F_group, HLA_G_group颜色映射 (它们有相同的类别)
+colors_HLA_EFG <- brewer.pal(n = 3, name = 'Dark2')
+names(colors_HLA_EFG) <- c("High", "Low", "Neg")
+
+# 构建颜色列表
+HLA_colors <- list(
+  HLA_I_Manual = colors_HLA_I_Manual,
+  CD45_density_group = colors_CD45,
+  HLA_E_group = colors_HLA_EFG,
+  HLA_F_group = colors_HLA_EFG,
+  HLA_G_group = colors_HLA_EFG
+)
+
+# 打开PNG设备，设置图片大小，单位为像素
+png("oncoplot.png", width = 4200, height = 3600, res = 300)
+
+# 绘制oncoplot，包含多个临床特征和自定义颜色
+oncoplot(
+  maf = SILU,
+  colors = vc_cols,
+  genes = target_genes,
+  annotationFontSize = 1,
+  clinicalFeatures = c('HLA_I_Manual', 'CD45_density_group', 'HLA_E_group', 'HLA_F_group', 'HLA_G_group'),
+  sortByAnnotation = TRUE,
+  annotationColor = HLA_colors
+)
+
+# 关闭图形设备
+dev.off()
