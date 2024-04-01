@@ -1,0 +1,44 @@
+library(maftools)
+library(RColorBrewer)
+library(dplyr)
+
+target_genes <- c('HLA-A', 'HLA-B', 'HLA-C', 'B2M', 'TAP1', 'TAP2', 'CALR', 'CANX', 
+                  'TAPBP', 'PSMB8', 'PSMB9', 'PSME1', 'PSME2', 'ERAP1', 
+                  'ERAP2', 'PDIA3', 'NLRC5', 'IDE', 'TPP2', 'HSPA5', 'THOP1', 'IFNGR1', 
+                  'IFNGR2', 'IRF1', 'JAK1', 'JAK2', 'STAT1', 'APLNR', 'CD58')
+
+# 假设SILU是一个MAF对象，进行预处理......
+
+# 设置变异类型对应的颜色
+vc_cols <- RColorBrewer::brewer.pal(n = 7, name = 'Paired')
+names(vc_cols) <- c(
+  'Frame_Shift_Del',
+  'Missense_Mutation',
+  'Nonsense_Mutation',
+  'Translation_Start_Site',
+  'Frame_Shift_Ins',
+  'Splice_Site',
+  'Multi_Hit'
+)
+
+# 更改FAB classification的颜色设置
+fabcolors <- RColorBrewer::brewer.pal(n = 3, name = 'Spectral')
+names(fabcolors) <- c("High", "Low")
+fabcolors <- list(HLA_I_group = fabcolors)
+
+# 打开PNG设备，设置图片大小，单位为像素
+png("oncoplot.png", width = 2400, height = 1600, res = 300)
+
+# 绘制oncoplot，设置注释字体大小
+oncoplot(
+  maf = SILU,
+  colors = vc_cols,
+  genes = target_genes,
+  annotationFontSize = 1.0, # 调整注释字体大小
+  clinicalFeatures = 'HLA_I_group',
+  sortByAnnotation = TRUE,
+  annotationColor = fabcolors
+)
+
+# 关闭图形设备
+dev.off()
