@@ -1,0 +1,25 @@
+# 假设dataset1和dataset2都已经被加载进来了
+# 我们根据Patient_ID合并它们
+merged_dataset <- merge(ALL_SILU_data, X41591_2023_2324_MOESM4_ESM, by = "Patient_ID", all.x = TRUE)
+
+# 移除HLA_I_group和Mutational_load_category列中含有NA的行
+merged_dataset_clean <- merged_dataset %>%
+  filter(!is.na(HLA_I_group) & !is.na(Mutational_load_category))
+
+# 假设你的P值为0.05，这里是如何在图表上添加这个P值的示例
+library(ggplot2)
+
+ggplot(merged_dataset_clean, aes(x = HLA_I_group, fill = Mutational_load_category)) +
+  geom_bar(position = "fill", width = 0.6) +  # 调整这个值来改变柱状图的宽度
+  labs(x = "HLA I Group", y = "Proportion") +
+  theme_minimal() +
+  annotate("text", x = 1.5, y = 1.35, label = paste("P-value =", 0.056), size = 5)  
+
+  # 修改x, y的值来调整文本位置
+
+
+# 构建列联表
+table_data <- table(merged_dataset_clean$HLA_I_group, merged_dataset_clean$Mutational_load_category)
+
+# 进行卡方检验
+chisq.test(table_data)
