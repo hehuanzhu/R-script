@@ -1,0 +1,48 @@
+library(maftools)
+library(RColorBrewer)
+library(dplyr)
+
+# 假设SILU是一个MAF对象
+# 先备份原始的临床数据
+original_clinical_data <- SILU@clinical.data
+
+# 移除含有NA的行
+filtered_clinical_data <- original_clinical_data %>% 
+  filter(!is.na(CD45_density_group))
+
+# 更新MAF对象的临床数据
+SILU@clinical.data <- filtered_clinical_data
+
+# 设置变异类型对应的颜色
+vc_cols <- RColorBrewer::brewer.pal(n = 7, name = 'Paired')
+names(vc_cols) <- c(
+  'Frame_Shift_Del',
+  'Missense_Mutation',
+  'Nonsense_Mutation',
+  'Translation_Start_Site',
+  'Frame_Shift_Ins',
+  'Splice_Site',
+  'Multi_Hit'
+)
+
+# 更改FAB classification的颜色设置
+fabcolors <- RColorBrewer::brewer.pal(n = 2, name = 'Spectral')
+names(fabcolors) <- c("High", "Low")
+fabcolors <- list(CD45_density_group = fabcolors)
+
+# 打开PNG设备，设置图片大小，单位为像素
+png("oncoplot.png", width = 4200, height = 3600, res = 300)
+
+# 调整注释字体大小，并绘制oncoplot
+oncoplot(
+  maf = SILU,
+  colors = vc_cols,
+  genes = target_genes,
+  annotationFontSize = 1, # 调整这个值以改变字体大小
+  clinicalFeatures = 'CD45_density_group',
+  sortByAnnotation = TRUE,
+  annotationColor = fabcolors
+)
+
+# 关闭图形设备
+dev.off()
