@@ -16,27 +16,39 @@ names(vc_cols) <- c('Frame_Shift_Del', 'Missense_Mutation', 'Nonsense_Mutation',
 
 # 为不同的临床特征设置颜色映射
 # HLA_I_Manual颜色映射
-colors_HLA_I_Manual <- brewer.pal(n = 4, name = 'Spectral')
-names(colors_HLA_I_Manual) <- c("p", "hp", "hw", "w")
+# 定义一个包含红、绿、蓝颜色的向量
+colors_ICR_HML <- c("#d53e4f", "#4daf4a", "#377eb8")
+names(colors_ICR_HML) <- c("ICR High", "ICR Medium", "ICR Low")
 
-# CD45_density_group颜色映射
-colors_CD45 <- c("High" = "red", "Low" = "#2b8cbe")
+colors_HLA_I_group <- c("#c51b7d", "#ffd92f")
+names(colors_HLA_I_group) <- c("High", "Low")
+
+colors_CD45_density_group <- c("#762a83", "#1b7837")
+names(colors_CD45_density_group) <- c("High", "Low")
 
 # HLA_E_group, HLA_F_group, HLA_G_group颜色映射 (它们有相同的类别)
-colors_HLA_EFG <- brewer.pal(n = 3, name = 'Dark2')
-names(colors_HLA_EFG) <- c("High", "Low", "Neg")
+colors_HLA_E <- c("#f0027f", "#386cb0", "#ffff99")
+names(colors_HLA_E) <- c("High", "Low", "Neg")
+
+colors_HLA_F <- c("#e7298a", "#66a61e", "#e6ab02")
+names(colors_HLA_F) <- c("High", "Low", "Neg")
+
+colors_HLA_G <- c("#e31a1c", "#fb9a99", "#decbe4")
+names(colors_HLA_G) <- c("High", "Low", "Neg")
+
 
 # 构建颜色列表
 HLA_colors <- list(
-  HLA_I_Manual = colors_HLA_I_Manual,
-  CD45_density_group = colors_CD45,
-  HLA_E_group = colors_HLA_EFG,
-  HLA_F_group = colors_HLA_EFG,
-  HLA_G_group = colors_HLA_EFG
+  ICR_HML = colors_ICR_HML,
+  HLA_I_group = colors_HLA_I_group,
+  CD45_density_group = colors_CD45_density_group,
+  HLA_E_group = colors_HLA_E,
+  HLA_F_group = colors_HLA_F,
+  HLA_G_group = colors_HLA_G
 )
 
 # 打开PNG设备，设置图片大小，单位为像素
-png("oncoplot.png", width = 4200, height = 3600, res = 300)
+png("oncoplot.png", width = 4800, height = 4000, res = 300)
 
 # 绘制oncoplot，包含多个临床特征和自定义颜色
 oncoplot(
@@ -44,7 +56,7 @@ oncoplot(
   colors = vc_cols,
   genes = target_genes,
   annotationFontSize = 1,
-  clinicalFeatures = c('HLA_I_Manual', 'CD45_density_group', 'HLA_E_group', 'HLA_F_group', 'HLA_G_group'),
+  clinicalFeatures = c("ICR_HML", 'HLA_I_group', "CD45_density_group", 'HLA_E_group', 'HLA_F_group', 'HLA_G_group'),
   sortByAnnotation = TRUE,
   annotationColor = HLA_colors
 )
