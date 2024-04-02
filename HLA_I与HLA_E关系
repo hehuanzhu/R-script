@@ -1,0 +1,26 @@
+# 加载必要的包
+library(dplyr)
+# 添加新列HLA_E_com
+ALL_SILU_data <- ALL_SILU_data %>%
+  mutate(HLA_E_com = case_when(
+    HLA_E_group == "High" ~ "High",
+    HLA_E_group %in% c("Low", "Neg") ~ "Low",
+    TRUE ~ NA_character_ # 对于不是"Pos", "Low"或"Neg"的值赋予NA
+  ))
+
+ALL_SILU_data <- ALL_SILU_data %>%
+  filter(!is.na(HLA_E_com) & !is.na(HLA_I_group))
+
+library(ggplot2)
+
+# 构建列联表
+table_data <- table(ALL_SILU_data$HLA_I_group, ALL_SILU_data$HLA_E_com)
+
+# 进行卡方检验
+chisq.test(table_data)
+
+ggplot(ALL_SILU_data, aes(x = HLA_I_group, fill = HLA_E_com)) +
+  geom_bar(position = "fill", width = 0.7) +  # 调整这个值来改变柱状图的宽度
+  labs(x = "HLA I Group", y = "Proportion") +
+  theme_minimal() +
+  annotate("text", x = 1.5, y = 1.05, label = paste("P-value =", 0.1287), size = 5)  # 调整文本位置
