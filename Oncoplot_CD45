@@ -41,6 +41,11 @@ oncoplot(
   annotationFontSize = 1, # 调整这个值以改变字体大小
   clinicalFeatures = 'CD45_density_group',
   sortByAnnotation = TRUE,
+
+# 指定ICR_HML注释的顺序
+  annotationOrder = c("ICR High", "ICR Medium", "ICR Low"),
+  groupAnnotationBySize = FALSE,
+
   annotationColor = fabcolors
 )
 
