@@ -58,6 +58,9 @@ oncoplot(
   annotationFontSize = 1,
   clinicalFeatures = c("ICR_HML", 'HLA_I_group', "CD45_density_group", 'HLA_E_group', 'HLA_F_group', 'HLA_G_group'),
   sortByAnnotation = TRUE,
+# 指定ICR_HML注释的顺序
+annotationOrder = c("ICR High", "ICR Medium", "ICR Low"),
+  groupAnnotationBySize = FALSE,
   annotationColor = HLA_colors
 )
 
