@@ -37,6 +37,11 @@ oncoplot(
   annotationFontSize = 1.0, # 调整注释字体大小
   clinicalFeatures = 'HLA_I_group',
   sortByAnnotation = TRUE,
+# 指定ICR_HML注释的顺序
+  annotationOrder = c("ICR High", "ICR Medium", "ICR Low"),
+  groupAnnotationBySize = FALSE,
+
+
   annotationColor = fabcolors
 )
 
