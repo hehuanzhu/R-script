@@ -1,0 +1,67 @@
+# 加载必要的库
+library(maftools)
+library(RColorBrewer)
+library(dplyr)
+
+# 定义目标基因列表
+target_genes <- c('HLA-A', 'HLA-B', 'HLA-C', 'B2M', 'TAP1', 'TAP2', 'CALR', 'CANX', 
+                  'TAPBP', 'PSMB8', 'PSMB9', 'PSME1', 'PSME2', 'ERAP1', 
+                  'ERAP2', 'PDIA3', 'NLRC5', 'IDE', 'TPP2', 'HSPA5', 'THOP1', 'IFNGR1', 
+                  'IFNGR2', 'IRF1', 'JAK1', 'JAK2', 'STAT1', 'APLNR', 'CD58')
+
+# 配置颜色
+vc_cols <- RColorBrewer::brewer.pal(n = 7, name = 'Paired')
+names(vc_cols) <- c(
+  'Frame_Shift_Del',
+  'Missense_Mutation',
+  'Nonsense_Mutation',
+  'Translation_Start_Site',
+  'Frame_Shift_Ins',
+  'Splice_Site',
+  'Multi_Hit'
+)
+
+fabcolors <- RColorBrewer::brewer.pal(n = 4, name = 'Spectral')
+names(fabcolors) <- c("p", "hp", "hw", "w")
+fabcolors <- list(HLA_I_Manual = fabcolors)
+
+# 假设SILU是已经加载的MAF对象
+# 你的数据准备和加载步骤......
+
+# 从MAF对象的clinical数据中获取样本ID
+non_hypermutated_samples <- SILU@clinical.data$Tumor_Sample_Barcode[SILU@clinical.data$Mutational_load_category.y == 'non-hypermutated']
+hypermutated_samples <- SILU@clinical.data$Tumor_Sample_Barcode[SILU@clinical.data$Mutational_load_category.y == 'hypermutated']
+
+# 根据样本ID筛选MAF对象
+SILU_non_hypermutated <- subsetMaf(maf = SILU, tsb = non_hypermutated_samples)
+SILU_hypermutated <- subsetMaf(maf = SILU, tsb = hypermutated_samples)
+
+# 绘制non-hypermutated组的oncoplot
+png("oncoplot_non_hypermutated.png", width = 2400, height = 1600, res = 300)
+oncoplot(
+  maf = SILU_non_hypermutated,
+  colors = vc_cols,
+  genes = target_genes,
+  annotationFontSize = 1.0,
+  clinicalFeatures = 'HLA_I_Manual',
+  sortByAnnotation = TRUE,
+  annotationOrder = c("p", "hp", "hw", "w"),
+  groupAnnotationBySize = FALSE,
+  annotationColor = fabcolors
+)
+dev.off()
+
+# 绘制hypermutated组的oncoplot
+png("oncoplot_hypermutated.png", width = 2400, height = 1600, res = 300)
+oncoplot(
+  maf = SILU_hypermutated,
+  colors = vc_cols,
+  genes = target_genes,
+  annotationFontSize = 1.0,
+  clinicalFeatures = 'HLA_I_Manual',
+  sortByAnnotation = TRUE,
+  annotationOrder = c("p", "hp", "hw", "w"),
+  groupAnnotationBySize = FALSE,
+  annotationColor = fabcolors
+)
+dev.off()
