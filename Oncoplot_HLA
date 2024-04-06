@@ -22,9 +22,9 @@ names(vc_cols) <- c(
 )
 
 # 更改FAB classification的颜色设置
-fabcolors <- RColorBrewer::brewer.pal(n = 3, name = 'Spectral')
-names(fabcolors) <- c("High", "Low")
-fabcolors <- list(HLA_I_group = fabcolors)
+fabcolors <- RColorBrewer::brewer.pal(n = 4, name = 'Spectral')
+names(fabcolors) <- c("p", "hp", "hw", "w")
+fabcolors <- list(HLA_I_Manual = fabcolors)
 
 # 打开PNG设备，设置图片大小，单位为像素
 png("oncoplot.png", width = 2400, height = 1600, res = 300)
@@ -35,10 +35,10 @@ oncoplot(
   colors = vc_cols,
   genes = target_genes,
   annotationFontSize = 1.0, # 调整注释字体大小
-  clinicalFeatures = 'HLA_I_group',
+  clinicalFeatures = 'HLA_I_Manual',
   sortByAnnotation = TRUE,
 # 指定ICR_HML注释的顺序
-  annotationOrder = c("ICR High", "ICR Medium", "ICR Low"),
+  annotationOrder = c("p", "hp", "hw", "w"),
   groupAnnotationBySize = FALSE,
 
 
