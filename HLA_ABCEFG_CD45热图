@@ -1,0 +1,21 @@
+library(pheatmap)
+library(dplyr)
+
+# 仅针对指定列去除含NA的行
+cols_of_interest <- c("HLA_I", "CD45", "HLA_E", "HLA_F", "HLA_G")
+ALL_SILU_data_clean <- ALL_SILU_data[complete.cases(ALL_SILU_data[cols_of_interest]), ]
+
+# 确保数据按您指定的顺序排列
+data_for_heatmap <- ALL_SILU_data_clean[, cols_of_interest]
+
+# 绘制热图，调整标签的大小和方向
+png("pheatmap.png", width = 1200, height = 2400, res = 300)
+pheatmap(data_for_heatmap, 
+         treeheight_row = 10, 
+         treeheight_col = 50,
+         cluster_rows = TRUE, 
+         cluster_cols = TRUE,
+         fontsize_row = 10, # 调整行标签字体大小，根据需要进行修改
+         fontsize_col = 10, # 调整列标签字体大小，根据需要进行修改
+         angle_col = 45) # 调整列标签的方向，这里设置为45度，根据需要调整
+dev.off()
