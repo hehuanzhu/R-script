@@ -1,0 +1,63 @@
+library(readxl)
+
+# 读取 CSV 文件，假设文件名为 HLA_ABCEFGCD45.csv，路径为 /Users/zhuhehuan/heatmap/
+HLA_ABCEFGCD45 <- read.csv("HLA_ABCEFGCD45.csv", header = TRUE, row.names = 1)
+
+ICR_CMS_MSI <- read.csv("ICR_CMS_MSI.csv", header = TRUE, row.names = 1)
+
+HLA_ABCEFGCD45 <- na.omit(HLA_ABCEFGCD45)
+
+HLA_ABCEFGCD45 <- t(HLA_ABCEFGCD45)
+
+
+
+
+```{r}
+# 假设ICR_CMS_MSI是你的数据框
+ICR_CMS_MSI_matrix <- as.matrix(ICR_CMS_MSI)
+```
+
+
+library(pheatmap)
+library(dplyr)
+
+# 先从 ICR_CMS_MSI 中提取与 HLA_ABCEFGCD45 列名匹配的数据
+matched_indices <- match(colnames(HLA_ABCEFGCD45), rownames(ICR_CMS_MSI_matrix))
+ICR_values <- ICR_CMS_MSI_matrix[matched_indices, "ICR"]
+CMS_values <- ICR_CMS_MSI_matrix[matched_indices, "CMS"]
+MSI_values <- ICR_CMS_MSI_matrix[matched_indices, "MSI"]
+Stage_values <- ICR_CMS_MSI_matrix[matched_indices, "Stage"]
+
+# 明确将 NA 转换为字符 "NA"
+MSI_values[is.na(MSI_values)] <- "NA"
+
+# 创建annotation_col数据框，显式指定因子水平
+annotation_col <- data.frame(
+  ICR = factor(ICR_values),
+  CMS = factor(CMS_values),
+  Stage = factor(Stage_values),
+  MSI = factor(MSI_values, levels = c("MSI-H", "MSS", "NA"))  # 明确列出所有可能的水平
+)
+
+# 定义颜色，确保每个水平都有对应颜色
+ann_colors = list(
+  ICR = c('High' = "red", 'Medium' = "green", 'Low' = "blue"),
+  CMS = c('CMS1' = "#ff7f0e", 'CMS2' = "#1f77b4", 'CMS3' = "#e377c2", 'CMS4' = "#2ca02c", 'mixed' = "grey"),
+  Stage = c('1' = "#66c2a5", "2" = "#fc8d62", "3" = "#8da0cb", "4" = "#e78ac3" ),
+  MSI = c('MSI-H' = "purple", 'MSS' = "white", 'NA' = "darkgrey")  # 确保包含 'NA'
+)
+
+# 设置PNG输出
+png("pheatmap.png", width = 3600, height = 1500, res = 300)
+
+# 绘制热图
+pheatmap(HLA_ABCEFGCD45,
+         color = colorRampPalette(c("#377eb8", "#4daf4a", "#e41a1c"))(50),
+         annotation_col = annotation_col,
+         annotation_colors = ann_colors, 
+         main = "Title",
+         show_colnames = FALSE
+         ) 
+
+# 关闭图形设备
+dev.off()
