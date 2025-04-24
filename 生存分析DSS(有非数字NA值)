@@ -1,26 +1,26 @@
-生存分析代码DSS(有非数字NA值)：
+rm(list = ls())
 library(dplyr)
 library(survival)
 library(survminer)
+library(readxl)
+ALL_SILU_data <- read_excel("ALL_SILU_data.xlsx")
 
+# 仅删除HLA_I_Manual, DSS_Status, 和DSS_Time列中含有空值的行
 # 将DSS_Time列中的"NA"字符串转换为真正的NA值，然后将列转换为数值型
-ALL_SILU_data_clean <- ALL_SILU_data_clean %>%
+ALL_SILU_data_clean <- ALL_SILU_data %>%
   mutate(DSS_Time = as.numeric(replace(DSS_Time, DSS_Time == "NA", NA)))
-
 
 # 将生存时间从天数转换为月数
 ALL_SILU_data_clean <- ALL_SILU_data_clean %>%
   mutate(DSS_Time_Months = DSS_Time / 30.44)
 
-# 创建一个新的分组变量，将p单独一组，hp和hw一组，w单独一组
-# 并且将该变量转换为因子并指定顺序
 ALL_SILU_data_grouped <- ALL_SILU_data_clean %>%
   mutate(Group = factor(case_when(
-    HLA_I_Manual == "p" ~ "p",
-    HLA_I_Manual %in% c("hp", "hw") ~ "hp_hw",
-    HLA_I_Manual == "w" ~ "w",
-    TRUE ~ "Other" # 处理可能存在的其他情况
-  ), levels = c("p", "hp_hw", "w"))) # 指定因子水平的顺序
+    HLA_I_group == "High" ~ "High",
+    HLA_I_group == "Low" ~ "Low",
+    TRUE ~ "Other"  # 捕捉意外值
+  ), levels = c("High", "Low", "Other"))) %>%
+  filter(Group != "Other")  # 删除“Other”组
 
 # 移除Group列为"Other"的行，如果你的数据确实只包含p, hp, hw, w，这步可能是多余的
 ALL_SILU_data_grouped <- filter(ALL_SILU_data_grouped, Group != "Other")
@@ -31,20 +31,39 @@ surv_object <- Surv(time = ALL_SILU_data_grouped$DSS_Time_Months, event = ALL_SI
 # 使用新的分组变量进行Kaplan-Meier生存分析
 km_fit <- survfit(surv_object ~ Group, data = ALL_SILU_data_grouped)
 
-# 绘制生存曲线，指定图例顺序和颜色
-ggsurvplot(km_fit,
-           data = ALL_SILU_data_grouped,
-           pval = TRUE,
-           conf.int = FALSE, # 不显示95%置信区间
-           risk.table = TRUE,
-           palette = c( "#FC4E07", "#E7B800", "#2E9FDF"), # 为每个组指定颜色，确保与因子水平的顺序相匹配
-           legend.title = "Group",
-           legend.labs = c("Positive", "Heterogenous", "Negative"), # 自定义图例标签
-           xlab = "Time in months", # 修改x轴标签为月数
-           ylab = "DSS probability",
-           risk.table.fontsize = 3, # 调整风险表字体大小
-           risk.table.height = 0.3, # 可以调整风险表的高度，如果需要的话
-           # 其他字体大小保持默认
-xlim = c(0, 90), # 限制X轴范围只展示到90个月
-break.x.by = 30#横坐标间隔
-           )
+surv_plot <- ggsurvplot(
+  km_fit,
+  data = ALL_SILU_data_grouped,
+  pval = TRUE,
+  conf.int = FALSE,
+  risk.table = TRUE,
+  palette = c("#FC4E07", "#2E9FDF"),
+  legend.title = "Group",
+  legend.labs = c("High", "Low"),
+  xlab = "Time in months",
+  ylab = "Survival probability",
+  xlim = c(0, 90),
+  break.x.by = 30,
+  risk.table.fontsize = 4,
+  risk.table.height = 0.25,  # 不调整
+  font.main = c(16, "bold"),
+  font.x = c(14),
+  font.y = c(14),
+  font.tickslab = 12,
+  font.legend = c(12),  # 调小 legend 字体
+  legend = "top",       # legend 放上方，更节省宽度
+  ggtheme = theme_bw(base_size = 14) +
+    theme(
+      panel.background = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(10, 10, 10, 10)  # 收紧周围留白
+    )
+)
+
+# 导出为稍窄一些的 PDF（使主图更紧凑）
+pdf("HLA_I_DSS.pdf", width = 4.5, height = 6, onefile = FALSE)
+print(surv_plot)
+dev.off()
+
+
