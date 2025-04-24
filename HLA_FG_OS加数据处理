@@ -1,61 +1,62 @@
-```{r}
-library(dplyr)
-
-ALL_SILU_data <- ALL_SILU_data %>%
-  mutate(HLA_FG = case_when(
-    HLA_F_group == "Neg" & HLA_G_group == "Neg" ~ "Neg", # 当两个列的值均为Neg时
-    TRUE ~ "Pos" # 在其他所有情况下
-  ))
-
-```
-
-
-```{r}
+rm(list = ls())
 library(dplyr)
 library(survival)
 library(survminer)
+library(readxl)
 
-# 假设 ALL_SILU_data 已经被加载到环境中
+ALL_SILU_data <- read_excel("ALL_SILU_data.xlsx")
+
+ALL_SILU_data <- ALL_SILU_data %>%
+  mutate(HLA_FG = case_when(
+    HLA_F_group == "Neg" & HLA_G_group == "Neg" ~ "Neg",
+    TRUE ~ "Pos"
+  ))
+
 ALL_SILU_data_clean <- ALL_SILU_data %>%
-  filter(!is.na(HLA_FG) & !is.na(HLA_I_group) & !is.na(CD45_density_group) & !is.na(OS_Status) & !is.na(OS_Time))
+  filter(!is.na(HLA_FG) & !is.na(HLA_I_group) & !is.na(CD45_density_group) & !is.na(PFS_Status) & !is.na(PFS_Time)) %>%
+  mutate(PFS_Time_Months = PFS_Time / 30.44)
 
-# 将生存时间从天数转换为月数
-ALL_SILU_data_clean <- ALL_SILU_data_clean %>%
-  mutate(OS_Time_Months = OS_Time / 30.44)
-
-# 创建一个新的组合变量
 ALL_SILU_data_grouped <- ALL_SILU_data_clean %>%
-  mutate(Group = factor(paste(HLA_FG, HLA_I_group,CD45_density_group, sep = "_")))
+  mutate(Group = factor(paste(HLA_FG, HLA_I_group, CD45_density_group, sep = "_")))
 
+surv_object <- Surv(time = ALL_SILU_data_grouped$PFS_Time_Months, event = ALL_SILU_data_grouped$PFS_Status == "Recurred")
 
-# 创建生存对象，使用转换后的月数
-surv_object <- Surv(time = ALL_SILU_data_grouped$OS_Time_Months, event = ALL_SILU_data_grouped$OS_Status == "DECEASED")
-
-# 使用新的分组变量进行Kaplan-Meier生存分析
 km_fit <- survfit(surv_object ~ Group, data = ALL_SILU_data_grouped)
 
-# 绘制生存曲线
-ggsurvplot(km_fit,
-           data = ALL_SILU_data_grouped,
-           pval = TRUE,
-           conf.int = FALSE, # 不显示95%置信区间
-           risk.table = TRUE,
-           palette = c("#f03b20",
-                       "#fff7bc",
-                       "#fee391",
-                       "#045a8d",
-                       "#fec44f",
-                       "#fe9929",
-                       "#ffffe5",
-                       "#2b8cbe"),
-           legend.title = "Group",
-           legend.labs = levels(ALL_SILU_data_grouped$Group), # 自动从分组变量中获取图例标签
-           xlab = "Time in months",
-           ylab = "OS probability",
-           risk.table.fontsize = 3,
-           risk.table.height = 0.5,
-           xlim = c(0, 90), # 限制X轴范围只展示到90个月
-           break.x.by = 30)
+surv_plot <- ggsurvplot(
+  km_fit,
+  data = ALL_SILU_data_grouped,
+  pval = TRUE,
+  conf.int = FALSE,
+  risk.table = TRUE,
+  palette = c("#f03b20", "#fff7bc", "#fee391", "#045a8d", "#fec44f", "#fe9929", "#ffffe5", "#2b8cbe"),
+  legend.title = "Group",
+  legend.labs = levels(ALL_SILU_data_grouped$Group),
+  xlab = "Time in months",
+  ylab = "PFS probability",
+  xlim = c(0, 90),
+  break.x.by = 30,
+  lwd = 0.3,
+  risk.table.fontsize = 4,
+  risk.table.height = 0.4,
+  font.main = c(16, "bold"),
+  font.x = c(14),
+  font.y = c(14),
+  font.tickslab = 12,
+  font.legend = c(12),
+  legend = "top",
+  ggtheme = theme_bw(base_size = 14) +
+    theme(
+      panel.background = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.margin = margin(10, 10, 10, 10)
+    )
+)
+
+pdf("HLA_EFG_PFS.pdf", width = 5, height = 6, onefile = FALSE)
+print(surv_plot)
+dev.off()
 
 
-```
+
